@@ -5,7 +5,7 @@ import "fmt"
 // Keys returns an array of keys in an arbitrary map.
 func Keys[T any, K comparable](in map[K]T) []K {
 	out := make([]K, 0)
-	for k, _ := range in {
+	for k := range in {
 		out = append(out, k)
 	}
 	return out

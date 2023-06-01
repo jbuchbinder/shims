@@ -63,7 +63,7 @@ func ToGOB64[T any](m T) (string, error) {
 	e := gob.NewEncoder(&b)
 	err := e.Encode(m)
 	if err != nil {
-		log.Printf(`failed gob Encode`, err)
+		log.Printf("failed gob Encode: %s", err.Error())
 		return "", err
 	}
 	return base64.StdEncoding.EncodeToString(b.Bytes()), nil

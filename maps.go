@@ -2,6 +2,15 @@ package shims
 
 import "fmt"
 
+// Copy creates a copy of a map
+func Copy[T any, K comparable](in map[K]T) map[K]T {
+	out := make(map[K]T, 0)
+	for k := range in {
+		out[k] = in[k]
+	}
+	return out
+}
+
 // Keys returns an array of keys in an arbitrary map.
 func Keys[T any, K comparable](in map[K]T) []K {
 	out := make([]K, 0)

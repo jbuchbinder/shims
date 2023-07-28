@@ -74,3 +74,16 @@ func MatcherValueOne[T any, K comparable](in map[K]T, f func(check T) bool) (T, 
 	}
 	return *new(T), fmt.Errorf("not found")
 }
+
+// MergeMap merges two of the same type of maps together, overwriting values
+// with the additional data.
+func MergeMap[V comparable, T any](orig map[V]T, addl map[V]T) map[V]T {
+	out := make(map[V]T)
+	for k, v := range orig {
+		out[k] = v
+	}
+	for k, v := range addl {
+		out[k] = v
+	}
+	return out
+}

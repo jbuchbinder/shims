@@ -5,25 +5,36 @@ import (
 	"encoding/base64"
 	"encoding/gob"
 	"encoding/json"
+	"errors"
 	"io"
-	"io/ioutil"
 	"log"
+	"os"
 )
 
-// SerializeJsonToFile serializes an arbitrary data type in JSON to the
+type Serializer[T any] interface {
+	ToFile(fn string, data T)
+	ToWriter(w io.Writer, data T) error
+	FromFile(fn string) (T, error)
+	FromReader(r io.Reader) (T, error)
+}
+
+type JsonSerializer[T any] struct {
+}
+
+// ToFile serializes an arbitrary data type in JSON to the
 // specified file
-func SerializeJsonToFile[T any](fn string, data T) error {
+func (s JsonSerializer[T]) ToFile(fn string, data T) error {
 	out, err := json.Marshal(data)
 	//log.Printf("TRACE: DATA = %s", string(out))
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(fn, out, 0644)
+	return os.WriteFile(fn, out, 0644)
 }
 
-// SerializeJsonToWriter serializes an arbitrary data type in JSON to the
+// ToWriter serializes an arbitrary data type in JSON to the
 // specified io.Writer
-func SerializeJsonToWriter[T any](w io.Writer, data T) error {
+func (s JsonSerializer[T]) ToWriter(w io.Writer, data T) error {
 	out, err := json.Marshal(data)
 	if err != nil {
 		return err
@@ -32,11 +43,11 @@ func SerializeJsonToWriter[T any](w io.Writer, data T) error {
 	return err
 }
 
-// UnserializeJsonFromFile deserializes a JSON representation from a
+// FromFile deserializes a JSON representation from a
 // specified file into an arbitrary object
-func UnserializeJsonFromFile[T any](fn string) (T, error) {
+func (s JsonSerializer[T]) FromFile(fn string) (T, error) {
 	var out T
-	data, err := ioutil.ReadFile(fn)
+	data, err := os.ReadFile(fn)
 	if err != nil {
 		return out, err
 	}
@@ -44,16 +55,94 @@ func UnserializeJsonFromFile[T any](fn string) (T, error) {
 	return out, nil
 }
 
-// UnserializeJsonFromReader deserializes a JSON representation from a
+// FromWriter deserializes a JSON representation from a
 // specified io.Reader into an arbitrary object
-func UnserializeJsonFromReader[T any](r io.Reader) (T, error) {
+func (s JsonSerializer[T]) FromReader(r io.Reader) (T, error) {
 	var out T
-	data, err := ioutil.ReadAll(r)
+	data, err := io.ReadAll(r)
 	if err != nil {
 		return out, err
 	}
 	err = json.Unmarshal(data, &out)
 	return out, nil
+}
+
+// SerializeJsonToFile serializes an arbitrary data type in JSON to the
+// specified file
+func SerializeJsonToFile[T any](fn string, data T) error {
+	s := JsonSerializer[T]{}
+	return s.ToFile(fn, data)
+}
+
+// SerializeJsonToWriter serializes an arbitrary data type in JSON to the
+// specified io.Writer
+func SerializeJsonToWriter[T any](w io.Writer, data T) error {
+	s := JsonSerializer[T]{}
+	return s.ToWriter(w, data)
+}
+
+// UnserializeJsonFromFile deserializes a JSON representation from a
+// specified file into an arbitrary object
+func UnserializeJsonFromFile[T any](fn string) (T, error) {
+	s := JsonSerializer[T]{}
+	return s.FromFile(fn)
+}
+
+// UnserializeJsonFromReader deserializes a JSON representation from a
+// specified io.Reader into an arbitrary object
+func UnserializeJsonFromReader[T any](r io.Reader) (T, error) {
+	s := JsonSerializer[T]{}
+	return s.FromReader(r)
+}
+
+type GOB64Serializer[T any] struct {
+}
+
+// ToFile serializes an arbitrary data type in GOB64 to the
+// specified file
+func (s GOB64Serializer[T]) ToFile(fn string, data T) error {
+	b := bytes.Buffer{}
+	e := gob.NewEncoder(&b)
+	err := e.Encode(data)
+	if err != nil {
+		log.Printf("failed gob Encode: %s", err.Error())
+		return err
+	}
+	fp, err := os.OpenFile(fn, os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+	enc := base64.NewEncoder(base64.StdEncoding, fp)
+	_, err = enc.Write(b.Bytes())
+	return err
+}
+
+// ToWriter serializes an arbitrary data type in GOB64 to the
+// specified io.Writer
+func (s GOB64Serializer[T]) ToWriter(w io.Writer, data T) error {
+	b := bytes.Buffer{}
+	e := gob.NewEncoder(&b)
+	err := e.Encode(data)
+	if err != nil {
+		log.Printf("failed gob Encode: %s", err.Error())
+		return err
+	}
+	enc := base64.NewEncoder(base64.StdEncoding, w)
+	_, err = enc.Write(b.Bytes())
+	return err
+}
+
+// FromFile deserializes a GOB64 representation from a
+// specified file into an arbitrary object
+func (s GOB64Serializer[T]) FromFile(fn string) (T, error) {
+	return *new(T), errors.ErrUnsupported
+}
+
+// FromWriter deserializes a GOB64 representation from a
+// specified io.Reader into an arbitrary object
+func (s GOB64Serializer[T]) FromReader(r io.Reader) (T, error) {
+	return *new(T), errors.ErrUnsupported
 }
 
 // ToGOB64 encodes an arbotrary object into a base64 wrapped GOB

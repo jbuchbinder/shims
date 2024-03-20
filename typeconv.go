@@ -9,3 +9,9 @@ func ArrayConvert[F any, T any](in []F, f func(F) T) []T {
 	}
 	return out
 }
+
+// TypeConvert is a convenience function to force cast
+func TypeConvert[T any](v any) T {
+	out, _ := v.(T)
+	return out
+}

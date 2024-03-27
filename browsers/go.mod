@@ -2,7 +2,7 @@ module github.com/jbuchbinder/shims/browsers
 
 go 1.21
 
-require github.com/chromedp/cdproto v0.0.0-20240127002248-bd7a66284627
+require github.com/chromedp/cdproto v0.0.0-20240312231614-1e5096e63154
 
 require (
 	github.com/chromedp/sysutil v1.0.0 // indirect

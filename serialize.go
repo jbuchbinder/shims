@@ -52,7 +52,7 @@ func (s JsonSerializer[T]) FromFile(fn string) (T, error) {
 		return out, err
 	}
 	err = json.Unmarshal(data, &out)
-	return out, nil
+	return out, err
 }
 
 // FromWriter deserializes a JSON representation from a
@@ -64,7 +64,7 @@ func (s JsonSerializer[T]) FromReader(r io.Reader) (T, error) {
 		return out, err
 	}
 	err = json.Unmarshal(data, &out)
-	return out, nil
+	return out, err
 }
 
 // SerializeJsonToFile serializes an arbitrary data type in JSON to the

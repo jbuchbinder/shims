@@ -65,3 +65,8 @@ func FindArrayMember[T any](in []T, f func(check T) bool) (int, bool) {
 	}
 	return 0, false
 }
+
+// ArrayOfElements creates an array from a type.
+func ArrayOfElements[T any](el T) []T {
+	return make([]T, 0)
+}

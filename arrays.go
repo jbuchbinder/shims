@@ -70,3 +70,17 @@ func FindArrayMember[T any](in []T, f func(check T) bool) (int, bool) {
 func ArrayOfElements[T any](el T) []T {
 	return make([]T, 0)
 }
+
+// UniqueValues returns an array of unique values from an array.
+func UniqueValues[T comparable](in []T) []T {
+	seen := make(map[T]bool)
+	result := []T{}
+
+	for _, val := range in {
+		if _, ok := seen[val]; !ok {
+			seen[val] = true
+			result = append(result, val)
+		}
+	}
+	return result
+}
